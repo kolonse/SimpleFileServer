@@ -17,13 +17,8 @@ import (
 var Port = flag.Int("-p", 54321, "-p=<port> default=54321")
 
 func Response(res *HttpLib.Response, code string, desc string) {
-	//	buf, _ := json.Marshal(map[string]interface{}{
-	//		"Code":    code,
-	//		"Message": desc,
-	//	})
 	res.Header().Set("Code", code)
 	res.Header().Set("Message", desc)
-	//	res.End()
 }
 
 func main() {
