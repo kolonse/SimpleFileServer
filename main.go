@@ -5,18 +5,19 @@ import (
 	"bufio"
 	"encoding/json"
 	"flag"
-	"github.com/kolonse/KolonseWeb"
-	"github.com/kolonse/KolonseWeb/HttpLib"
-	"github.com/kolonse/KolonseWeb/Type"
 	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
+
+	"github.com/kolonse/KolonseWeb"
+	"github.com/kolonse/KolonseWeb/HttpLib"
+	"github.com/kolonse/KolonseWeb/Type"
 )
 
-var Port = flag.Int("-p", 54321, "-p=<port> default=54321")
+var port = flag.Int("-p", 54321, "-p=<port> default=54321")
 
-func Response(res *HttpLib.Response, code string, desc string) {
+func response(res *HttpLib.Response, code string, desc string) {
 	res.Header().Set("Code", code)
 	res.Header().Set("Message", desc)
 }
@@ -30,7 +31,7 @@ func main() {
 		file, err := os.OpenFile(dst, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0666)
 		if err != nil {
 			//			res.End(Response(-1, err.Error()))
-			Response(res, "-1", err.Error())
+			response(res, "-1", err.Error())
 			return
 		}
 		defer req.Body.Close()
@@ -39,21 +40,21 @@ func main() {
 		w := bufio.NewWriter(file)
 		_, err = io.Copy(w, r)
 		if err != nil {
-			Response(res, "-1", err.Error())
+			response(res, "-1", err.Error())
 			return
 		}
 		err = w.Flush()
 		if err != nil {
-			Response(res, "-1", err.Error())
+			response(res, "-1", err.Error())
 			return
 		}
-		Response(res, "0", "")
+		response(res, "0", "")
 	})
 	KolonseWeb.DefaultApp.Post("/download", func(req *HttpLib.Request, res *HttpLib.Response, next Type.Next) {
 		src := req.URL.Query().Get("src")
 		file, err := os.OpenFile(src, os.O_RDONLY, 0666)
 		if err != nil {
-			Response(res, "-1", err.Error())
+			response(res, "-1", err.Error())
 			return
 		}
 		defer req.Body.Close()
@@ -62,15 +63,15 @@ func main() {
 		w := bufio.NewWriter(res)
 		_, err = io.Copy(w, r)
 		if err != nil {
-			Response(res, "-1", err.Error())
+			response(res, "-1", err.Error())
 			return
 		}
 		err = w.Flush()
 		if err != nil {
-			Response(res, "-1", err.Error())
+			response(res, "-1", err.Error())
 			return
 		}
-		Response(res, "0", "")
+		response(res, "0", "")
 	})
 	KolonseWeb.DefaultApp.Post("/cmd", func(req *HttpLib.Request, res *HttpLib.Response, next Type.Next) {
 
@@ -79,7 +80,7 @@ func main() {
 		var argArr []string
 		err := json.Unmarshal([]byte(arg), &argArr)
 		if err != nil {
-			Response(res, "-1", err.Error())
+			response(res, "-1", err.Error())
 			return
 		}
 		w := bufio.NewWriter(res)
@@ -89,11 +90,11 @@ func main() {
 		c.Stderr = w
 		err = c.Run()
 		if err != nil {
-			Response(res, "-1", err.Error())
+			response(res, "-1", err.Error())
 			return
 		}
-		Response(res, "0", "")
+		response(res, "0", "")
 		w.Flush()
 	})
-	KolonseWeb.DefaultApp.Listen("0.0.0.0", *Port)
+	KolonseWeb.DefaultApp.Listen("0.0.0.0", *port)
 }
